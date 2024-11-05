@@ -38,3 +38,10 @@ def generate_payload():
 def test_api_set_up(get_example_payloads, get_example_responses):
     response = client.post("/productionplan", json=get_example_payloads[2])
     assert response.text == get_example_responses[0]
+
+
+def test_no_response_has_illegal_pvalue(get_example_payloads):
+    for payload in get_example_payloads:
+         response = client.post("/productionplan", json=payload)
+         assert all(payload["powerplants"][name]["pmax"] >= p and payload["powerplants"][name]["pmin"] <= p
+             for name, p in json.loads(response.text)[0].items())
