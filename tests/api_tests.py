@@ -2,7 +2,7 @@ import json
 import os
 import pytest
 from pathlib import Path
-
+from operator import getitem
 from powerplantapp.domain.model import Fuel, PayLoad, PowerPlant
 from powerplantapp.api.post import app
 
@@ -40,8 +40,9 @@ def test_api_set_up(get_example_payloads, get_example_responses):
     assert response.text == get_example_responses[0]
 
 
-def test_no_response_has_illegal_pvalue(get_example_payloads):
+def test_no_response_has_illegal_pvalue(get_example_payloads, get_example_responses):
     for payload in get_example_payloads:
          response = client.post("/productionplan", json=payload)
-         assert all(payload["powerplants"][name]["pmax"] >= p and payload["powerplants"][name]["pmin"] <= p
-             for name, p in json.loads(response.text)[0].items())
+         sorted_payload = sorted(payload["powerplants"], key=lambda x: x["name"])
+         sorted_response = sorted(response, key=lambda x: x["name"])
+         assert all(re["p"] == 0 or pl["pmin"] <= re["p"] and pl["pmax"] >= re["p"] for pl, re in zip(sorted_payload, sorted_response))
