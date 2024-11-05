@@ -1,4 +1,6 @@
-from dataclasses import dataclass
+import json
+from pathlib import Path
+from pydantic.dataclasses import dataclass
 from enum import Enum
 
 """
@@ -17,23 +19,35 @@ The payload contains 3 types of data:
    - pmin: the minimum amount of power the powerplant generates when switched on. 
 """
 
+
 class Fuel(Enum):
-    GAS = "gas"
-    KEROSINE = "kerosine"
-    CO2 = "co2"
-    WIND = "wind"
+    GAS = "gas(euro/MWh)"
+    KEROSINE = "kerosine(euro/MWh)"
+    CO2 = "co2(euro/ton)"
+    WIND = "wind(%)"
+
+
+@dataclass
+class PowerPlant:
+    name: str
+    type: str
+    efficiency: float
+    pmin: int
+    pmax: int
 
 
 @dataclass
 class PayLoad:
     load: int
-    fuels: dict[Fuel, int]
+    fuels: dict[Fuel, float]
+    powerplants: list[PowerPlant]
+
+    @classmethod
+    def from_json(cls, path: Path):
+        return cls(**json.loads(path.read_bytes()))
 
 
 @dataclass
-class PowerPlant:
-      name: str
-      type: str
-      efficiency: float
-      pmin: int
-      pmax: int
+class Response:
+    name: str
+    p: float
