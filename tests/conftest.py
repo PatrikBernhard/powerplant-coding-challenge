@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import pytest
 from pathlib import Path
 
@@ -11,13 +12,13 @@ def resources() -> Path:
 
 @pytest.fixture
 def get_example_payloads(resources):
-    payloads = [json.loads((root / pl).read_bytes()) for root, _, pls in resources.walk() for pl in pls if "payload" in pl]
+    payloads = {re.sub("\D", "", pl): json.loads((root / pl).read_bytes()) for root, _, pls in resources.walk() for pl in pls if "payload" in pl}
     return payloads
 
 @pytest.fixture
 def get_example_responses(resources):
-    payloads = [json.loads((root / pl).read_bytes()) for root, _, pls in resources.walk() for pl in pls if "response" in pl]
-    return payloads
+    responses = {re.sub("\D", "", rs): json.loads((root / rs).read_bytes()) for root, _, rss in resources.walk() for rs in rss if "response" in rs}
+    return responses
 
 @pytest.fixture()
 def generate_payload():
