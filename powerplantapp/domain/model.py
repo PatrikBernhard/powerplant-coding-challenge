@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from pydantic import model_validator
 from pydantic.dataclasses import dataclass
 from enum import Enum
 
@@ -52,6 +53,14 @@ class PayLoad:
     def from_json(cls, path: Path):
         return cls(**json.loads(path.read_bytes()))
 
+    @model_validator(mode='after')
+    def set_new_efficiency_for_wind(self):
+        """Immediately scale the p-value for wind to normalize calculations across powerplant types."""
+        for pp in self.powerplants:
+            if pp.type == PlantType.WIND:
+                pp.pmin = pp.pmin*self.fuels[Fuel.WIND] / 100
+                pp.pmax = pp.pmax*self.fuels[Fuel.WIND] / 100
+        return self
 
 @dataclass
 class Response:
