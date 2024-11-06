@@ -1,9 +1,22 @@
 
+from functools import partial
 from powerplantapp.domain.model import Fuel, PayLoad, PlantType, Response, PowerPlant
 
 
 def compute_response(payload: PayLoad) -> list[Response]:
-    return []
+    sorted_powerplants = sorted(payload.powerplants, key=partial(merit_order, fuels=payload.fuels))
+    p_budget = payload.load
+    response = []
+    for pp in sorted_powerplants:
+        desired_p = get_desired_p(pp, p_left=p_budget)
+        response.append(Response(pp.name, desired_p))
+        p_budget -= desired_p 
+    return response
+
+def get_desired_p(powerplant: PowerPlant, p_left: int):
+    if p_left <= 0:
+        return 0
+    return max(powerplant.pmin, min(powerplant.pmax, p_left))
 
 
 def merit_order(powerplant: PowerPlant, fuels: dict[Fuel, float]) -> int:
