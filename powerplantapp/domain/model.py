@@ -26,11 +26,17 @@ class Fuel(Enum):
     CO2 = "co2(euro/ton)"
     WIND = "wind(%)"
 
+class PlantType(Enum):
+    WIND = "windturbine"
+    GAS = "gasfired"
+    JET = "turbojet"
+
+
 
 @dataclass
 class PowerPlant:
     name: str
-    type: str
+    type: PlantType
     efficiency: float
     pmin: int
     pmax: int
