@@ -7,17 +7,32 @@ def compute_response(payload: PayLoad) -> list[Response]:
     sorted_powerplants = sorted(payload.powerplants, key=partial(merit_order, fuels=payload.fuels))
     p_budget = payload.load
     response = []
-    for pp in sorted_powerplants:
+    for index, pp in enumerate(sorted_powerplants):
         desired_p = get_desired_p(pp, p_left=p_budget)
         response.append(Response(pp.name, desired_p))
-        p_budget -= desired_p 
+        p_budget -= desired_p
+
+        if p_budget < 0:
+            backtrack_index = -2
+            while p_budget < 0:
+                p_adjust = get_correction_p(sorted_powerplants[index+backtrack_index+1], response[backtrack_index], p_budget)
+                response[backtrack_index].p -= p_adjust
+                p_budget += p_adjust
+                backtrack_index -= 1
+            
     return response
 
-def get_desired_p(powerplant: PowerPlant, p_left: int):
+def get_desired_p(powerplant: PowerPlant, p_left: int) -> int:
     if p_left <= 0:
         return 0
     return max(powerplant.pmin, min(powerplant.pmax, p_left))
 
+def get_correction_p(pp: PowerPlant, resp: Response, p_to_adjust: int):
+    """
+    We might have to adjust previous p-values in case the last powerplant,
+    exceeded the load because of its pmin.
+    """
+    return min(resp.p - pp.pmin, -p_to_adjust)
 
 def merit_order(powerplant: PowerPlant, fuels: dict[Fuel, float]) -> int:
     """
