@@ -10,7 +10,7 @@ docker build . -t powerplantapp:latest
 ```
 after the build successfully finishes
 ```bash
-docker run --network="host" powerplantapp
+docker run -p 8888:8888 powerplantapp
 ```
 
 
